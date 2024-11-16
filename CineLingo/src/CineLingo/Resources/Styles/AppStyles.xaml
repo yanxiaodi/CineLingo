@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="CineLingo.Resources.Styles.AppStyles">
+    <OnIdiom x:Key="LayoutPadding"
+             x:TypeArguments="Thickness"
+             Default="15">
+        <OnIdiom.Desktop>30</OnIdiom.Desktop>
+    </OnIdiom>
+
+    <OnIdiom x:Key="LayoutSpacing"
+             x:TypeArguments="x:Double"
+             Default="5">
+        <OnIdiom.Desktop>15</OnIdiom.Desktop>
+    </OnIdiom>
+</ResourceDictionary>
