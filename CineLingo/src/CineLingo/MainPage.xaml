@@ -4,19 +4,20 @@
              xmlns:pageModels="clr-namespace:CineLingo.PageModels"
              xmlns:models="clr-namespace:CineLingo.Models"
              x:DataType="pageModels:MainPageModel"
-             x:Class="CineLingo.MainPage">
+             x:Class="CineLingo.MainPage" BackgroundColor="Black">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
-        <ListView ItemsSource="{Binding Captions}" >
+        <ListView ItemsSource="{Binding Captions}" HasUnevenRows="True">
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:Caption">
                     <ViewCell>
                         <StackLayout Padding="10">
-                            <Label Text="{Binding Text}" LineBreakMode="WordWrap"/>
+                            <Label Text="{Binding Text}" LineBreakMode="WordWrap" TextColor="WhiteSmoke"/>
                         </StackLayout>
                     </ViewCell>
                 </DataTemplate>
@@ -45,11 +46,16 @@
                 </x:Array>
             </ListView.ItemsSource>
         </ListView>-->
-        <Label Grid.Row="1" Text="{Binding CurrentCaption.Text}" LineBreakMode="WordWrap"></Label>
+        <Label Grid.Row="1" Text="{Binding CurrentCaption.Text}" LineBreakMode="WordWrap"
+               TextColor="WhiteSmoke"></Label>
         <Button Grid.Row="2"
                 Text="Start" 
-                SemanticProperties.Hint="Start Transcription"
+                SemanticProperties.Hint="Start" IsEnabled="{Binding IsStartEnabled}" IsVisible="{Binding IsStartEnabled}"
                 HorizontalOptions="Fill" Command="{Binding StartTranscriptionCommand}"/>
+        <Button Grid.Row="2"
+                Text="Stop" 
+                SemanticProperties.Hint="Stop" IsEnabled="{Binding IsStopEnabled}" IsVisible="{Binding IsStopEnabled}"
+                HorizontalOptions="Fill" Command="{Binding StopTranscriptionCommand}"/>
     </Grid>
 
 </ContentPage>

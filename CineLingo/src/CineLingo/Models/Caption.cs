@@ -1,7 +1,10 @@
-﻿namespace CineLingo.Models;
-public class Caption
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+namespace CineLingo.Models;
+public partial class Caption : ObservableObject
 {
-    public string Text { get; set; } = string.Empty;
+    [ObservableProperty]
+    private string _text = string.Empty;
 
     public Caption()
     {

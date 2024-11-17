@@ -5,11 +5,11 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:CineLingo"
     Shell.FlyoutBehavior="Flyout"
-    Title="CineLingo">
+    Title="CineLingo" BackgroundColor="Black">
 
     <ShellContent
         Title="Home"
         ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+        Route="MainPage"/>
 
 </Shell>
