@@ -4,55 +4,37 @@
              xmlns:pageModels="clr-namespace:CineLingo.PageModels"
              xmlns:models="clr-namespace:CineLingo.Models"
              x:DataType="pageModels:MainPageModel"
-             x:Class="CineLingo.MainPage" BackgroundColor="Black">
-    <Grid>
+             xmlns:behaviors="clr-namespace:CineLingo.Behaviors"
+             x:Class="CineLingo.MainPage" BackgroundColor="Black"
+             Title="CinLingo">
+    <Grid VerticalOptions="Fill">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
             <RowDefinition Height="Auto"></RowDefinition>
         </Grid.RowDefinitions>
-        <ListView ItemsSource="{Binding Captions}" HasUnevenRows="True">
+        <ListView Grid.Row="0" ItemsSource="{Binding Captions}" HasUnevenRows="True">
+            <ListView.Behaviors>
+                <behaviors:ScrollToBottomBehavior />
+            </ListView.Behaviors>
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="models:Caption">
                     <ViewCell>
-                        <StackLayout Padding="10">
+                        <StackLayout Padding="6">
                             <Label Text="{Binding Text}" LineBreakMode="WordWrap" TextColor="WhiteSmoke"/>
                         </StackLayout>
                     </ViewCell>
                 </DataTemplate>
             </ListView.ItemTemplate>
         </ListView>
-        <!--<ListView>
-            <ListView.ItemsSource>
-                <x:Array Type="{x:Type x:String}">
-                    <x:String>Baboon</x:String>
-                    <x:String>Capuchin Monkey</x:String>
-                    <x:String>Blue Monkey</x:String>
-                    <x:String>Squirrel Monkey</x:String>
-                    <x:String>Golden Lion Tamarin</x:String>
-                    <x:String>Howler Monkey</x:String>
-                    <x:String>Japanese Macaque</x:String>
-                    <x:String>Mandrill</x:String>
-                    <x:String>Proboscis Monkey</x:String>
-                    <x:String>Red-shanked Douc</x:String>
-                    <x:String>Gray-shanked Douc</x:String>
-                    <x:String>Golden Snub-nosed Monkey</x:String>
-                    <x:String>Black Snub-nosed Monkey</x:String>
-                    <x:String>Tonkin Snub-nosed Monkey</x:String>
-                    <x:String>Thomas's Langur</x:String>
-                    <x:String>Purple-faced Langur</x:String>
-                    <x:String>Gelada</x:String>
-                </x:Array>
-            </ListView.ItemsSource>
-        </ListView>-->
-        <Label Grid.Row="1" Text="{Binding CurrentCaption.Text}" LineBreakMode="WordWrap"
+        <Label Padding="6" Grid.Row="1" Text="{Binding CurrentCaption.Text}" LineBreakMode="WordWrap"
                TextColor="WhiteSmoke"></Label>
         <Button Grid.Row="2"
                 Text="Start" 
                 SemanticProperties.Hint="Start" IsEnabled="{Binding IsStartEnabled}" IsVisible="{Binding IsStartEnabled}"
                 HorizontalOptions="Fill" Command="{Binding StartTranscriptionCommand}"/>
-        <Button Grid.Row="2"
+        <Button Grid.Row="3"
                 Text="Stop" 
                 SemanticProperties.Hint="Stop" IsEnabled="{Binding IsStopEnabled}" IsVisible="{Binding IsStopEnabled}"
                 HorizontalOptions="Fill" Command="{Binding StopTranscriptionCommand}"/>
