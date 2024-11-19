@@ -58,22 +58,20 @@ public partial class MainPageModel : ObservableObject
                         CurrentCaption.Text = string.Empty;
                         Captions.Add(new Caption(recognitionResult.Text));
                     }
-                    else
-                    {
-                        await Toast.Make(recognitionResult.Exception?.Message ?? "Unable to recognize speech")
-                            .Show(CancellationToken.None);
-                    }
+                    //else
+                    //{
+                    //    await Toast.Make(recognitionResult.Exception?.Message ?? "Unable to recognize speech")
+                    //        .Show(CancellationToken.None);
+                    //}
                 }
                 catch (TaskCanceledException)
                 {
                     // Task was cancelled, this is expected
-                    await Toast.Make("Transcription stopped.")
-                        .Show(CancellationToken.None);
+                    //await Toast.Make("Transcription stopped.").Show(CancellationToken.None);
                 }
                 catch (Exception ex)
                 {
-                    await Toast.Make(ex.Message)
-                        .Show(CancellationToken.None);
+                    //await Toast.Make(ex.Message).Show(CancellationToken.None);
                 }
             }
             //await StartListenAsync();
