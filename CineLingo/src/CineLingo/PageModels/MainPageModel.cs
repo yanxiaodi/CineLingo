@@ -14,6 +14,7 @@ public partial class MainPageModel : ObservableObject
     [ObservableProperty] public partial bool IsStartEnabled { get; set; } = true;
     [ObservableProperty] public partial bool IsStopEnabled { get; set; }
     [ObservableProperty] public partial string StatusMessage { get; set; } = string.Empty;
+    public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
 
     // Colors assigned to speakers in the order they are first encountered.
     // Used for both diarization mode (keyed by speaker ID) and alternating mode (index cycles).
@@ -101,7 +102,11 @@ public partial class MainPageModel : ObservableObject
 
     private void OnStatusChanged(object? sender, string status)
     {
-        MainThread.BeginInvokeOnMainThread(() => StatusMessage = status);
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            StatusMessage = status;
+            OnPropertyChanged(nameof(HasStatusMessage));
+        });
     }
 
     /// <summary>
