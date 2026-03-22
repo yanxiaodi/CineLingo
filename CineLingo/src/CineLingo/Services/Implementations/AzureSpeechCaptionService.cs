@@ -31,9 +31,9 @@ public sealed class AzureSpeechCaptionService : ISpeechCaptionService, IAsyncDis
             return;
         }
 
-        var speechConfig = SpeechConfig.FromEndpoint(
-            new Uri(AppConfiguration.SpeechEndpoint),
-            AppConfiguration.SpeechSubscriptionKey);
+        var speechConfig = SpeechConfig.FromSubscription(
+            AppConfiguration.SpeechSubscriptionKey,
+            AppConfiguration.SpeechRegion);
 
         // Auto-detect language — max 4 candidates supported by Azure Speech SDK.
         var autoDetectConfig = AutoDetectSourceLanguageConfig.FromLanguages(

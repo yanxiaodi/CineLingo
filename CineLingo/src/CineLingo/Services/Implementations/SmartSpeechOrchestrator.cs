@@ -1,4 +1,3 @@
-using CineLingo.Configuration;
 using CineLingo.Models;
 using CineLingo.Services.Interfaces;
 
@@ -75,7 +74,7 @@ public sealed class SmartSpeechOrchestrator : ISpeechCaptionService, IAsyncDispo
         var detected = e.DetectedLanguage;
 
         // Only switch to conversation mode if English is detected AND credentials are configured.
-        if (detected == "en-US" && AppConfiguration.IsConversationConfigured)
+        if (detected == "en-US")
         {
             Task.Run(async () =>
             {

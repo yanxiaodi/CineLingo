@@ -40,8 +40,8 @@ public sealed class AzureConversationCaptionService : ISpeechCaptionService, IAs
         }
 
         var speechConfig = SpeechConfig.FromSubscription(
-            AppConfiguration.ConversationSpeechKey,
-            AppConfiguration.ConversationSpeechRegion);
+            AppConfiguration.SpeechSubscriptionKey,
+            AppConfiguration.SpeechRegion);
 
         speechConfig.SetProfanity(ProfanityOption.Raw);
 
