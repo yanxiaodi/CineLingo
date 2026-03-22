@@ -71,3 +71,7 @@ Temporary Items
 .apdisk
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,macos,windows
+
+# NEVER commit credentials — AppConfiguration.cs contains API keys
+# Fill in your real keys locally and keep this file untracked
+CineLingo/src/CineLingo/Configuration/AppConfiguration.cs

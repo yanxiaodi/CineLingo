@@ -19,7 +19,14 @@ There are no automated tests in this project.
 
 ## Azure Speech Configuration
 
-Before running, fill in your Azure Speech credentials in:
+### ⚠️ CRITICAL — NEVER COMMIT AppConfiguration.cs ⚠️
+
+`AppConfiguration.cs` is listed in `.gitignore` and must **never** be staged or committed.
+It contains a real Azure API key. Committing it leaks credentials into the public repository and requires:
+1. Immediately regenerating the key in Azure portal
+2. Rewriting the entire git history with `git filter-repo`
+
+Before running, fill in your Azure Speech credentials **locally** in:
 
 ```
 CineLingo/src/CineLingo/Configuration/AppConfiguration.cs
@@ -27,8 +34,11 @@ CineLingo/src/CineLingo/Configuration/AppConfiguration.cs
 
 ```csharp
 public const string SpeechSubscriptionKey = "YOUR_AZURE_SPEECH_KEY";
-public const string SpeechRegion = "YOUR_AZURE_REGION"; // e.g. "eastus"
+public const string SpeechEndpoint = "YOUR_ENDPOINT_URL";
 ```
+
+This file is git-ignored. When the repo is freshly cloned, copy it from the template
+(`AppConfiguration.cs.template` if one exists) or create it manually.
 
 ## Architecture
 
