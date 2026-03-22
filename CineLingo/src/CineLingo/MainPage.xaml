@@ -4,25 +4,21 @@
              xmlns:pageModels="clr-namespace:CineLingo.PageModels"
              xmlns:models="clr-namespace:CineLingo.Models"
              x:DataType="pageModels:MainPageModel"
-             x:Class="CineLingo.MainPage" BackgroundColor="Black"
-             Title="CineLingo">
-    <!-- Three-row grid: status bar (auto) / captions (*) / bottom panel (auto) -->
+             x:Class="CineLingo.MainPage" BackgroundColor="Black">
+
+    <!-- Hide the Shell navigation bar — the app title wastes vertical space -->
+    <Shell.NavBarIsVisible>False</Shell.NavBarIsVisible>
+
+    <!-- Two-row grid: captions fill remaining height / bottom panel auto-sizes -->
     <Grid VerticalOptions="Fill">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <!-- Status bar: shows current mode (detecting / English diarization / multi-language) -->
-        <Label Grid.Row="0" Margin="12,4,12,0"
-               Text="{Binding StatusMessage}"
-               TextColor="#666666" FontSize="11"
-               IsVisible="{Binding HasStatusMessage}"/>
-
         <!-- Finalized captions list -->
         <CollectionView x:Name="CaptionsView"
-                        Grid.Row="1"
+                        Grid.Row="0"
                         ItemsSource="{Binding Captions}"
                         ItemsUpdatingScrollMode="KeepLastItemInView"
                         BackgroundColor="Transparent">
@@ -40,27 +36,52 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Bottom panel: partial caption + buttons.
-             SizeChanged re-scrolls the CollectionView when the panel grows. -->
+        <!-- Bottom panel: partial caption + button row + status.
+             SizeChanged re-scrolls the CollectionView when height changes. -->
         <VerticalStackLayout x:Name="BottomPanel"
-                             Grid.Row="2"
+                             Grid.Row="1"
                              BackgroundColor="Black"
+                             Padding="0,4,0,0"
                              SizeChanged="OnBottomPanelSizeChanged">
 
             <!-- Interim/partial caption — always occupies at least one line of space -->
-            <Label Margin="12,4" Text="{Binding PartialCaption}"
+            <Label Margin="12,0,12,4" Text="{Binding PartialCaption}"
                    LineBreakMode="WordWrap" TextColor="#888888" FontAttributes="Italic" FontSize="18"
                    MinimumHeightRequest="28"/>
 
-            <!-- Start / Stop toggle -->
-            <Button Text="Start Captions"
-                    IsEnabled="{Binding IsStartEnabled}" IsVisible="{Binding IsStartEnabled}"
-                    HorizontalOptions="Fill" BackgroundColor="#512BD4" TextColor="White"
-                    Command="{Binding StartTranscriptionCommand}"/>
-            <Button Text="Stop Captions"
-                    IsEnabled="{Binding IsStopEnabled}" IsVisible="{Binding IsStopEnabled}"
-                    HorizontalOptions="Fill" BackgroundColor="#3a1f9e" TextColor="White"
-                    Command="{Binding StopTranscriptionCommand}"/>
+            <!-- Button row: [Start or Stop button | Listening animation] -->
+            <Grid ColumnSpacing="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Button Grid.Column="0" Text="Start Captions"
+                        IsEnabled="{Binding IsStartEnabled}" IsVisible="{Binding IsStartEnabled}"
+                        HorizontalOptions="Fill" BackgroundColor="#512BD4" TextColor="White"
+                        Command="{Binding StartTranscriptionCommand}"/>
+                <Button Grid.Column="0" Text="Stop Captions"
+                        IsEnabled="{Binding IsStopEnabled}" IsVisible="{Binding IsStopEnabled}"
+                        HorizontalOptions="Fill" BackgroundColor="#3a1f9e" TextColor="White"
+                        Command="{Binding StopTranscriptionCommand}"/>
+
+                <!-- Pulsing dot animation — visible only while listening -->
+                <VerticalStackLayout Grid.Column="1"
+                                     Padding="16,0" VerticalOptions="Center"
+                                     IsVisible="{Binding IsStopEnabled}">
+                    <Label x:Name="ListeningDot" Text="⬤" FontSize="22"
+                           TextColor="#7C5CBF" HorizontalOptions="Center"/>
+                    <Label Text="Listening" FontSize="9"
+                           TextColor="#888888" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+            </Grid>
+
+            <!-- Language/mode status: shown below buttons while recogniser is running -->
+            <Label Margin="12,2,12,4"
+                   Text="{Binding StatusMessage}"
+                   IsVisible="{Binding HasStatusMessage}"
+                   TextColor="#555555" FontSize="11"
+                   HorizontalOptions="Center"/>
         </VerticalStackLayout>
 
     </Grid>

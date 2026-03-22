@@ -1,13 +1,17 @@
 using CineLingo.PageModels;
+using System.ComponentModel;
 
 namespace CineLingo
 {
     public partial class MainPage : ContentPage
     {
+        private CancellationTokenSource? _animCts;
+
         public MainPage(MainPageModel model)
         {
             InitializeComponent();
             BindingContext = model;
+            model.PropertyChanged += OnModelPropertyChanged;
         }
 
         private void OnBottomPanelSizeChanged(object sender, EventArgs e)
@@ -19,6 +23,43 @@ namespace CineLingo
             var lastItem = model?.Captions?.LastOrDefault();
             if (lastItem != null)
                 CaptionsView.ScrollTo(lastItem, position: ScrollToPosition.End, animate: false);
+        }
+
+        private void OnModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != nameof(MainPageModel.IsStopEnabled)) return;
+
+            if (((MainPageModel)sender!).IsStopEnabled)
+            {
+                _animCts?.Cancel();
+                _animCts = new CancellationTokenSource();
+                _ = RunListeningAnimation(_animCts.Token);
+            }
+            else
+            {
+                _animCts?.Cancel();
+                ListeningDot.Scale = 1.0;
+                ListeningDot.Opacity = 1.0;
+            }
+        }
+
+        /// <summary>
+        /// Pulse the listening dot: scale up + fade out, then back down + fade in, in a loop.
+        /// </summary>
+        private async Task RunListeningAnimation(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                await Task.WhenAll(
+                    ListeningDot.ScaleToAsync(1.5, 800, Easing.SinInOut),
+                    ListeningDot.FadeToAsync(0.3, 800, Easing.SinInOut));
+
+                if (token.IsCancellationRequested) break;
+
+                await Task.WhenAll(
+                    ListeningDot.ScaleToAsync(1.0, 800, Easing.SinInOut),
+                    ListeningDot.FadeToAsync(1.0, 800, Easing.SinInOut));
+            }
         }
     }
 }
