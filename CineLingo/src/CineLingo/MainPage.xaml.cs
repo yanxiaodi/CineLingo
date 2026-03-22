@@ -11,7 +11,16 @@ namespace CineLingo
         {
             InitializeComponent();
             BindingContext = model;
-            model.PropertyChanged += OnModelPropertyChanged;
+            model.PropertyChanged      += OnModelPropertyChanged;
+            model.ScrollToLastRequested += OnScrollToLastRequested;
+        }
+
+        private void OnScrollToLastRequested(object? sender, EventArgs e)
+        {
+            var model = BindingContext as MainPageModel;
+            var lastItem = model?.Captions?.LastOrDefault();
+            if (lastItem != null)
+                CaptionsView.ScrollTo(lastItem, position: ScrollToPosition.End, animate: true);
         }
 
         private void OnBottomPanelSizeChanged(object sender, EventArgs e)

@@ -17,10 +17,14 @@ public partial class MainPageModel : ObservableObject
     [ObservableProperty] public partial bool IsTranslationEnabled { get; set; }
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
 
+    /// <summary>
+    /// Raised after a translation result is applied to a caption, so the view
+    /// can scroll to ensure the extra subtitle line is not hidden behind the bottom panel.
+    /// </summary>
+    public event EventHandler? ScrollToLastRequested;
+
     /// <summary>Opacity for the translation toggle button: full when on, dimmed when off.</summary>
     public double TranslationOpacity => IsTranslationEnabled ? 1.0 : 0.35;
-
-    // Colors assigned to speakers in the order they are first encountered.
     private static readonly Color[] SpeakerColors =
     [
         Colors.WhiteSmoke,
@@ -140,7 +144,11 @@ public partial class MainPageModel : ObservableObject
                 caption.Text, detectedLanguage, _appSettings.TargetLanguage);
 
             if (!string.IsNullOrWhiteSpace(translated))
-                MainThread.BeginInvokeOnMainThread(() => caption.TranslatedText = translated);
+                MainThread.BeginInvokeOnMainThread(() =>
+                {
+                    caption.TranslatedText = translated;
+                    ScrollToLastRequested?.Invoke(this, EventArgs.Empty);
+                });
         }
         catch
         {

@@ -64,28 +64,38 @@
 
                 <Border BackgroundColor="#111111" StrokeThickness="0" Margin="0,0,0,2">
                     <Border.StrokeShape><RoundRectangle CornerRadius="10"/></Border.StrokeShape>
-                    <Grid Padding="16,4,8,4" ColumnDefinitions="*,Auto">
-                        <Label Grid.Column="0" Text="Caption Font Size"
-                               TextColor="White" FontSize="16" VerticalOptions="Center"/>
-                        <Picker Grid.Column="1"
-                                ItemsSource="{x:Static pageModels:SettingsPageModel.FontSizeLabels}"
-                                SelectedIndex="{Binding SelectedFontSizeIndex}"
-                                TextColor="White"
-                                HorizontalOptions="End" MinimumWidthRequest="160"/>
-                    </Grid>
+                    <VerticalStackLayout Padding="16,12" Spacing="6">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="Caption Font Size"
+                                   TextColor="White" FontSize="16" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding FontSizeDisplayText}"
+                                   TextColor="#512BD4" FontSize="16" FontAttributes="Bold" VerticalOptions="Center"/>
+                        </Grid>
+                        <Slider Minimum="12" Maximum="30"
+                                Value="{Binding CaptionFontSize}"
+                                ThumbColor="#512BD4" MinimumTrackColor="#512BD4" MaximumTrackColor="#444444"/>
+                        <!-- Live preview: shows actual caption text at the current font size -->
+                        <Label Text="The quick brown fox jumps over the lazy dog."
+                               TextColor="#CCCCCC" LineBreakMode="WordWrap"
+                               FontSize="{DynamicResource CaptionFontSize}"/>
+                    </VerticalStackLayout>
                 </Border>
 
                 <Border BackgroundColor="#111111" StrokeThickness="0" Margin="0,1,0,2">
                     <Border.StrokeShape><RoundRectangle CornerRadius="10"/></Border.StrokeShape>
-                    <Grid Padding="16,4,8,4" ColumnDefinitions="*,Auto">
-                        <Label Grid.Column="0" Text="Max Captions Shown"
-                               TextColor="White" FontSize="16" VerticalOptions="Center"/>
-                        <Picker Grid.Column="1"
-                                ItemsSource="{x:Static pageModels:SettingsPageModel.MaxCaptionLabels}"
-                                SelectedIndex="{Binding SelectedMaxCaptionIndex}"
-                                TextColor="White"
-                                HorizontalOptions="End" MinimumWidthRequest="130"/>
-                    </Grid>
+                    <VerticalStackLayout Padding="16,12" Spacing="6">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0" Text="Max Captions Shown"
+                                   TextColor="White" FontSize="16" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding MaxCaptionDisplayText}"
+                                   TextColor="#512BD4" FontSize="16" FontAttributes="Bold" VerticalOptions="Center"/>
+                        </Grid>
+                        <Slider Minimum="0" Maximum="500"
+                                Value="{Binding MaxCaptionSliderValue}"
+                                ThumbColor="#512BD4" MinimumTrackColor="#512BD4" MaximumTrackColor="#444444"/>
+                        <Label Text="0 = Unlimited. Older captions removed when limit is reached."
+                               TextColor="#666666" FontSize="12"/>
+                    </VerticalStackLayout>
                 </Border>
 
                 <!-- ── Speech section ── -->

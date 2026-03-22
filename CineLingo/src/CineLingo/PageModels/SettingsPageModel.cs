@@ -24,54 +24,55 @@ public partial class SettingsPageModel : ObservableObject
         new("ar",      "العربية (Arabic)"),
     ];
 
-    public static readonly IReadOnlyList<double>  FontSizeValues   = [14.0, 18.0, 22.0, 26.0];
-    public static readonly IReadOnlyList<string>  FontSizeLabels   = ["Small (14)", "Medium (18)", "Large (22)", "X-Large (26)"];
-    public static readonly IReadOnlyList<int>     MaxCaptionValues = [50, 100, 200, 0];
-    public static readonly IReadOnlyList<string>  MaxCaptionLabels = ["50", "100", "200", "Unlimited"];
-
     private readonly AppSettings _settings;
 
     [ObservableProperty] public partial bool           IsTranslationEnabled     { get; set; }
     [ObservableProperty] public partial LanguageOption SelectedLanguage         { get; set; }
-    [ObservableProperty] public partial int            SelectedFontSizeIndex    { get; set; }
-    [ObservableProperty] public partial int            SelectedMaxCaptionIndex  { get; set; }
     [ObservableProperty] public partial bool           EnableSpeakerDiarization { get; set; }
+
+    /// <summary>Font size slider value (12–30). Drives DynamicResource immediately.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(FontSizeDisplayText))]
+    public partial double CaptionFontSize { get; set; }
+
+    /// <summary>Slider value for max captions (0–500). 0 means Unlimited.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaxCaptionDisplayText))]
+    public partial double MaxCaptionSliderValue { get; set; }
+
+    public string FontSizeDisplayText    => $"{(int)Math.Round(CaptionFontSize)}px";
+    public string MaxCaptionDisplayText  => MaxCaptionSliderValue <= 5 ? "Unlimited"
+                                            : $"{(int)(Math.Round(MaxCaptionSliderValue / 10.0) * 10)}";
 
     public SettingsPageModel(AppSettings settings)
     {
         _settings = settings;
 
-        IsTranslationEnabled    = settings.IsTranslationEnabled;
-        SelectedLanguage        = SupportedLanguages.FirstOrDefault(l => l.Code == settings.TargetLanguage)
-                                  ?? SupportedLanguages[0];
-        var fsi = FontSizeValues.ToList().IndexOf(settings.CaptionFontSize);
-        SelectedFontSizeIndex   = fsi >= 0 ? fsi : 1;
-        var mci = MaxCaptionValues.ToList().IndexOf(settings.MaxCaptionCount);
-        SelectedMaxCaptionIndex = mci >= 0 ? mci : 1;
+        IsTranslationEnabled     = settings.IsTranslationEnabled;
+        SelectedLanguage         = SupportedLanguages.FirstOrDefault(l => l.Code == settings.TargetLanguage)
+                                   ?? SupportedLanguages[0];
+        CaptionFontSize          = settings.CaptionFontSize;
+        MaxCaptionSliderValue    = settings.MaxCaptionCount <= 0 ? 0 : settings.MaxCaptionCount;
         EnableSpeakerDiarization = settings.EnableSpeakerDiarization;
     }
 
-    partial void OnIsTranslationEnabledChanged(bool value)        => _settings.IsTranslationEnabled = value;
-    partial void OnSelectedLanguageChanged(LanguageOption value) { if (value != null) _settings.TargetLanguage = value.Code; }
+    partial void OnIsTranslationEnabledChanged(bool value)         => _settings.IsTranslationEnabled = value;
+    partial void OnSelectedLanguageChanged(LanguageOption value)  { if (value != null) _settings.TargetLanguage = value.Code; }
+    partial void OnEnableSpeakerDiarizationChanged(bool value)     => _settings.EnableSpeakerDiarization = value;
 
-    partial void OnSelectedFontSizeIndexChanged(int value)
+    partial void OnCaptionFontSizeChanged(double value)
     {
-        if (value >= 0 && value < FontSizeValues.Count)
-        {
-            _settings.CaptionFontSize = FontSizeValues[value];
-            // Update DynamicResource so existing captions resize immediately.
-            if (Application.Current?.Resources is not null)
-                Application.Current.Resources["CaptionFontSize"] = FontSizeValues[value];
-        }
+        _settings.CaptionFontSize = value;
+        // Update DynamicResource so captions on MainPage resize immediately.
+        if (Application.Current?.Resources is not null)
+            Application.Current.Resources["CaptionFontSize"] = value;
     }
 
-    partial void OnSelectedMaxCaptionIndexChanged(int value)
+    partial void OnMaxCaptionSliderValueChanged(double value)
     {
-        if (value >= 0 && value < MaxCaptionValues.Count)
-            _settings.MaxCaptionCount = MaxCaptionValues[value];
+        // Round to nearest 10; treat ≤5 as Unlimited (0).
+        _settings.MaxCaptionCount = value <= 5 ? 0 : (int)(Math.Round(value / 10.0) * 10);
     }
-
-    partial void OnEnableSpeakerDiarizationChanged(bool value) => _settings.EnableSpeakerDiarization = value;
 
     [RelayCommand]
     private static async Task GoBack() => await Shell.Current.GoToAsync("..");
