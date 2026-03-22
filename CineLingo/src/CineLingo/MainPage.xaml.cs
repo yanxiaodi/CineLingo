@@ -1,4 +1,4 @@
-﻿using CineLingo.PageModels;
+using CineLingo.PageModels;
 
 namespace CineLingo
 {
@@ -9,6 +9,10 @@ namespace CineLingo
             InitializeComponent();
             BindingContext = model;
         }
-    }
 
+        private void OnBottomPanelSizeChanged(object sender, EventArgs e)
+        {
+            CaptionsView.Margin = new Thickness(0, 0, 0, BottomPanel.Height);
+        }
+    }
 }

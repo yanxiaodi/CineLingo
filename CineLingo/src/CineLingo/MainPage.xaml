@@ -6,17 +6,17 @@
              x:DataType="pageModels:MainPageModel"
              x:Class="CineLingo.MainPage" BackgroundColor="Black"
              Title="CineLingo">
+    <!-- Single-row grid: CollectionView fills all space; bottom panel floats on top anchored to bottom.
+         OnBottomPanelSizeChanged keeps CollectionView.Margin.Bottom equal to the panel height so
+         captions are never hidden behind the partial-caption label or buttons. -->
     <Grid VerticalOptions="Fill">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
 
-        <!-- Finalized captions list — auto-scrolls to newest item -->
-        <CollectionView Grid.Row="0" ItemsSource="{Binding Captions}"
+        <!-- Finalized captions list — margin-bottom updated dynamically from BottomPanel height -->
+        <CollectionView x:Name="CaptionsView"
+                        ItemsSource="{Binding Captions}"
                         ItemsUpdatingScrollMode="KeepLastItemInView"
-                        BackgroundColor="Transparent">
+                        BackgroundColor="Transparent"
+                        VerticalOptions="Fill">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Caption">
                     <Label Margin="12,4" Text="{Binding Text}" LineBreakMode="WordWrap"
@@ -25,20 +25,28 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Interim/partial caption — always occupies space to prevent CollectionView from jumping -->
-        <Label Grid.Row="1" Margin="12,4" Text="{Binding PartialCaption}"
-               LineBreakMode="WordWrap" TextColor="#888888" FontAttributes="Italic" FontSize="18"
-               MinimumHeightRequest="28"/>
+        <!-- Bottom panel floats over the CollectionView, anchored to the bottom -->
+        <VerticalStackLayout x:Name="BottomPanel"
+                             VerticalOptions="End"
+                             BackgroundColor="Black"
+                             SizeChanged="OnBottomPanelSizeChanged">
 
-        <!-- Start / Stop toggle -->
-        <Button Grid.Row="2" Text="Start Captions"
-                IsEnabled="{Binding IsStartEnabled}" IsVisible="{Binding IsStartEnabled}"
-                HorizontalOptions="Fill" BackgroundColor="#512BD4" TextColor="White"
-                Command="{Binding StartTranscriptionCommand}"/>
-        <Button Grid.Row="2" Text="Stop Captions"
-                IsEnabled="{Binding IsStopEnabled}" IsVisible="{Binding IsStopEnabled}"
-                HorizontalOptions="Fill" BackgroundColor="#3a1f9e" TextColor="White"
-                Command="{Binding StopTranscriptionCommand}"/>
+            <!-- Interim/partial caption — always occupies at least one line of space -->
+            <Label Margin="12,4" Text="{Binding PartialCaption}"
+                   LineBreakMode="WordWrap" TextColor="#888888" FontAttributes="Italic" FontSize="18"
+                   MinimumHeightRequest="28"/>
+
+            <!-- Start / Stop toggle -->
+            <Button Text="Start Captions"
+                    IsEnabled="{Binding IsStartEnabled}" IsVisible="{Binding IsStartEnabled}"
+                    HorizontalOptions="Fill" BackgroundColor="#512BD4" TextColor="White"
+                    Command="{Binding StartTranscriptionCommand}"/>
+            <Button Text="Stop Captions"
+                    IsEnabled="{Binding IsStopEnabled}" IsVisible="{Binding IsStopEnabled}"
+                    HorizontalOptions="Fill" BackgroundColor="#3a1f9e" TextColor="White"
+                    Command="{Binding StopTranscriptionCommand}"/>
+        </VerticalStackLayout>
+
     </Grid>
 </ContentPage>
 
