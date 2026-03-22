@@ -17,10 +17,22 @@ namespace CineLingo
 
         private void OnScrollToLastRequested(object? sender, EventArgs e)
         {
-            var model = BindingContext as MainPageModel;
-            var lastItem = model?.Captions?.LastOrDefault();
-            if (lastItem != null)
-                CaptionsView.ScrollTo(lastItem, position: ScrollToPosition.End, animate: true);
+            // The CollectionView item grows taller after TranslatedText is set, but MAUI's
+            // layout pass is asynchronous. Scroll twice at different delays to ensure the
+            // item has been re-measured before ScrollTo is called.
+            ScrollToLast(200);
+            ScrollToLast(500);
+        }
+
+        private void ScrollToLast(int delayMs)
+        {
+            Dispatcher.DispatchDelayed(TimeSpan.FromMilliseconds(delayMs), () =>
+            {
+                var model = BindingContext as MainPageModel;
+                var lastItem = model?.Captions?.LastOrDefault();
+                if (lastItem != null)
+                    CaptionsView.ScrollTo(lastItem, position: ScrollToPosition.End, animate: false);
+            });
         }
 
         private void OnBottomPanelSizeChanged(object sender, EventArgs e)
