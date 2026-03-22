@@ -1,4 +1,5 @@
 using CineLingo.Configuration;
+using CineLingo.Models;
 using CineLingo.Services.Interfaces;
 using Microsoft.CognitiveServices.Speech;
 using Microsoft.CognitiveServices.Speech.Audio;
@@ -8,8 +9,11 @@ namespace CineLingo.Services.Implementations;
 public sealed class AzureSpeechCaptionService : ISpeechCaptionService, IAsyncDisposable
 {
     public event EventHandler<string>? PartialResultReceived;
-    public event EventHandler<string>? FinalResultReceived;
+    public event EventHandler<FinalResultEventArgs>? FinalResultReceived;
     public event EventHandler<string>? ErrorReceived;
+#pragma warning disable CS0067 // StatusChanged is raised by SmartSpeechOrchestrator, not by this service directly
+    public event EventHandler<string>? StatusChanged;
+#pragma warning restore CS0067
 
     private SpeechRecognizer? _recognizer;
     private AudioConfig? _audioConfig;
@@ -70,7 +74,10 @@ public sealed class AzureSpeechCaptionService : ISpeechCaptionService, IAsyncDis
     private void OnRecognized(object? sender, SpeechRecognitionEventArgs e)
     {
         if (e.Result.Reason == ResultReason.RecognizedSpeech && !string.IsNullOrWhiteSpace(e.Result.Text))
-            FinalResultReceived?.Invoke(this, e.Result.Text);
+        {
+            var langResult = AutoDetectSourceLanguageResult.FromResult(e.Result);
+            FinalResultReceived?.Invoke(this, new FinalResultEventArgs(e.Result.Text, null, langResult?.Language));
+        }
     }
 
     private void OnCanceled(object? sender, SpeechRecognitionCanceledEventArgs e)

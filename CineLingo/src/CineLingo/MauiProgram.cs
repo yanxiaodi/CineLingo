@@ -24,7 +24,9 @@ namespace CineLingo
             builder.Logging.AddDebug();
             builder.Services.AddLogging(configure => configure.AddDebug());
 #endif
-            builder.Services.AddSingleton<ISpeechCaptionService, AzureSpeechCaptionService>();
+            builder.Services.AddSingleton<AzureSpeechCaptionService>();
+            builder.Services.AddSingleton<AzureConversationCaptionService>();
+            builder.Services.AddSingleton<ISpeechCaptionService, SmartSpeechOrchestrator>();
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<MainPage>();
 

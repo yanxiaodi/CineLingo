@@ -1,4 +1,4 @@
-﻿using CineLingo.Models;
+using CineLingo.Models;
 using CineLingo.Services.Interfaces;
 using CommunityToolkit.Maui.Alerts;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -13,10 +13,22 @@ public partial class MainPageModel : ObservableObject
     [ObservableProperty] public partial string PartialCaption { get; set; } = string.Empty;
     [ObservableProperty] public partial bool IsStartEnabled { get; set; } = true;
     [ObservableProperty] public partial bool IsStopEnabled { get; set; }
+    [ObservableProperty] public partial string StatusMessage { get; set; } = string.Empty;
 
-    // Two alternating colors to visually distinguish consecutive utterances.
-    private static readonly Color[] SpeakerColors = [Colors.WhiteSmoke, Color.FromArgb("#FFE066")];
-    private int _currentColorIndex;
+    // Colors assigned to speakers in the order they are first encountered.
+    // Used for both diarization mode (keyed by speaker ID) and alternating mode (index cycles).
+    private static readonly Color[] SpeakerColors =
+    [
+        Colors.WhiteSmoke,
+        Color.FromArgb("#FFE066"),
+        Color.FromArgb("#66E0FF"),
+        Color.FromArgb("#FF9966"),
+    ];
+
+    // Maps speaker ID → color in English/diarization mode.
+    private readonly Dictionary<string, Color> _speakerColorMap = new();
+    // Alternating index used in multi-language mode where speaker IDs are unavailable.
+    private int _alternatColorIndex;
 
     // Punctuation characters that indicate a sentence is already terminated.
     private static readonly char[] TerminatingPunctuation = ['.', '!', '?', '。', '！', '？', '…'];
@@ -29,6 +41,7 @@ public partial class MainPageModel : ObservableObject
         _speechCaptionService.PartialResultReceived += OnPartialResultReceived;
         _speechCaptionService.FinalResultReceived += OnFinalResultReceived;
         _speechCaptionService.ErrorReceived += OnErrorReceived;
+        _speechCaptionService.StatusChanged += OnStatusChanged;
     }
 
     [RelayCommand]
@@ -54,7 +67,9 @@ public partial class MainPageModel : ObservableObject
         IsStartEnabled = true;
         IsStopEnabled = false;
         PartialCaption = string.Empty;
-        _currentColorIndex = 0;
+        StatusMessage = string.Empty;
+        _alternatColorIndex = 0;
+        _speakerColorMap.Clear();
         await _speechCaptionService.StopAsync();
     }
 
@@ -63,13 +78,14 @@ public partial class MainPageModel : ObservableObject
         MainThread.BeginInvokeOnMainThread(() => PartialCaption = text);
     }
 
-    private void OnFinalResultReceived(object? sender, string text)
+    private void OnFinalResultReceived(object? sender, FinalResultEventArgs e)
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
             PartialCaption = string.Empty;
-            Captions.Add(new Caption(EnsureTerminatingPunctuation(text), SpeakerColors[_currentColorIndex]));
-            _currentColorIndex = 1 - _currentColorIndex;
+            var color = ResolveColor(e.SpeakerId);
+            var text = EnsureTerminatingPunctuation(e.Text);
+            Captions.Add(new Caption(text, color, e.SpeakerId));
         });
     }
 
@@ -83,7 +99,35 @@ public partial class MainPageModel : ObservableObject
         });
     }
 
-    /// <summary>Appends a period if the text doesn't already end with punctuation.</summary>
+    private void OnStatusChanged(object? sender, string status)
+    {
+        MainThread.BeginInvokeOnMainThread(() => StatusMessage = status);
+    }
+
+    /// <summary>
+    /// Returns a color for the given speaker ID.
+    /// Diarization mode: each unique speaker ID gets a stable assigned color.
+    /// Multi-language mode (speakerId is null): colors alternate per utterance.
+    /// </summary>
+    private Color ResolveColor(string? speakerId)
+    {
+        if (speakerId is null)
+        {
+            var color = SpeakerColors[_alternatColorIndex % SpeakerColors.Length];
+            _alternatColorIndex++;
+            return color;
+        }
+
+        if (!_speakerColorMap.TryGetValue(speakerId, out var speakerColor))
+        {
+            speakerColor = SpeakerColors[_speakerColorMap.Count % SpeakerColors.Length];
+            _speakerColorMap[speakerId] = speakerColor;
+        }
+
+        return speakerColor;
+    }
+
+    /// <summary>Appends a period if the text doesn't already end with sentence-ending punctuation.</summary>
     private static string EnsureTerminatingPunctuation(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return text;

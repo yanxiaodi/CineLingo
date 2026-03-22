@@ -1,38 +1,50 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:pageModels="clr-namespace:CineLingo.PageModels"
              xmlns:models="clr-namespace:CineLingo.Models"
              x:DataType="pageModels:MainPageModel"
              x:Class="CineLingo.MainPage" BackgroundColor="Black"
              Title="CineLingo">
-    <!-- Two-row Grid: CollectionView fills remaining space, BottomPanel auto-sizes.
-         OnBottomPanelSizeChanged re-scrolls to the last item whenever the panel grows
-         (e.g. partial caption wraps to multiple lines) so captions are never hidden. -->
+    <!-- Three-row grid: status bar (auto) / captions (*) / bottom panel (auto) -->
     <Grid VerticalOptions="Fill">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
+        <!-- Status bar: shows current mode (detecting / English diarization / multi-language) -->
+        <Label Grid.Row="0" Margin="12,4,12,0"
+               Text="{Binding StatusMessage}"
+               TextColor="#666666" FontSize="11"
+               IsVisible="{Binding StatusMessage, Converter={toolkit:IsNotNullOrEmptyConverter}}"/>
+
         <!-- Finalized captions list -->
         <CollectionView x:Name="CaptionsView"
-                        Grid.Row="0"
+                        Grid.Row="1"
                         ItemsSource="{Binding Captions}"
                         ItemsUpdatingScrollMode="KeepLastItemInView"
                         BackgroundColor="Transparent">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Caption">
-                    <Label Margin="12,4" Text="{Binding Text}" LineBreakMode="WordWrap"
-                           TextColor="{Binding TextColor}" FontSize="18"/>
+                    <VerticalStackLayout Margin="12,4">
+                        <!-- Speaker label shown only in English/diarization mode -->
+                        <Label Text="{Binding SpeakerLabel}"
+                               TextColor="#888888" FontSize="11" FontAttributes="Bold"
+                               IsVisible="{Binding HasSpeakerLabel}"/>
+                        <Label Text="{Binding Text}" LineBreakMode="WordWrap"
+                               TextColor="{Binding TextColor}" FontSize="18"/>
+                    </VerticalStackLayout>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
 
         <!-- Bottom panel: partial caption + buttons.
-             SizeChanged fires when partial caption wraps to more lines. -->
+             SizeChanged re-scrolls the CollectionView when the panel grows. -->
         <VerticalStackLayout x:Name="BottomPanel"
-                             Grid.Row="1"
+                             Grid.Row="2"
                              BackgroundColor="Black"
                              SizeChanged="OnBottomPanelSizeChanged">
 
