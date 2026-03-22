@@ -8,7 +8,5 @@ public static class AppConfiguration
 
     // Endpoint URL from Azure portal → Keys and Endpoint → Endpoint
     // e.g. "https://funcoding.cognitiveservices.azure.com/"
-    public const string SpeechEndpoint = "YOUR_ENDPOINT_URL";
+    public const string SpeechEndpoint = "https://funcoding.cognitiveservices.azure.com/";
 }
-
-

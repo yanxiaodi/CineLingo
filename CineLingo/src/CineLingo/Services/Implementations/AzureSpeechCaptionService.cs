@@ -37,7 +37,7 @@ public sealed class AzureSpeechCaptionService : ISpeechCaptionService, IAsyncDis
 
         speechConfig.OutputFormat = OutputFormat.Simple;
         speechConfig.SetProfanity(ProfanityOption.Raw);
-        speechConfig.EnableDictation(); // enables automatic punctuation
+        speechConfig.SetServiceProperty("punctuation", "explicit", ServicePropertyChannel.UriQueryParameter);
 
         _audioConfig = AudioConfig.FromDefaultMicrophoneInput();
         _recognizer = new SpeechRecognizer(speechConfig, autoDetectConfig, _audioConfig);

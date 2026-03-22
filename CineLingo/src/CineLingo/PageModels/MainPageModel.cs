@@ -15,11 +15,9 @@ public partial class MainPageModel : ObservableObject
     [ObservableProperty] public partial bool IsStartEnabled { get; set; } = true;
     [ObservableProperty] public partial bool IsStopEnabled { get; set; }
 
-    // Two alternating colors to visually hint at speaker changes during rapid dialogue.
+    // Two alternating colors to visually distinguish consecutive utterances.
     private static readonly Color[] SpeakerColors = [Colors.WhiteSmoke, Color.FromArgb("#FFE066")];
     private int _currentColorIndex;
-    private DateTime _lastFinalResultTime = DateTime.MinValue;
-    private const double SpeakerSwitchThresholdSeconds = 1.5;
 
     private readonly ISpeechCaptionService _speechCaptionService;
 
@@ -56,7 +54,6 @@ public partial class MainPageModel : ObservableObject
         PartialCaption = string.Empty;
         HasPartialCaption = false;
         _currentColorIndex = 0;
-        _lastFinalResultTime = DateTime.MinValue;
         await _speechCaptionService.StopAsync();
     }
 
@@ -73,17 +70,10 @@ public partial class MainPageModel : ObservableObject
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            var now = DateTime.UtcNow;
-            var gap = (now - _lastFinalResultTime).TotalSeconds;
-
-            // Switch speaker color when utterances come quickly (rapid dialogue between speakers).
-            if (_lastFinalResultTime != DateTime.MinValue && gap < SpeakerSwitchThresholdSeconds)
-                _currentColorIndex = 1 - _currentColorIndex;
-
-            _lastFinalResultTime = now;
             PartialCaption = string.Empty;
             HasPartialCaption = false;
             Captions.Add(new Caption(text, SpeakerColors[_currentColorIndex]));
+            _currentColorIndex = 1 - _currentColorIndex;
         });
     }
 
