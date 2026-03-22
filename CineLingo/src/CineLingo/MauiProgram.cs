@@ -1,4 +1,5 @@
-﻿using CineLingo.PageModels;
+﻿using CineLingo.Models;
+using CineLingo.PageModels;
 using CineLingo.Services.Implementations;
 using CineLingo.Services.Interfaces;
 using CommunityToolkit.Maui;
@@ -27,6 +28,8 @@ namespace CineLingo
             builder.Services.AddSingleton<AzureSpeechCaptionService>();
             builder.Services.AddSingleton<AzureConversationCaptionService>();
             builder.Services.AddSingleton<ISpeechCaptionService, SmartSpeechOrchestrator>();
+            builder.Services.AddSingleton<ITranslationService, AzureTranslatorService>();
+            builder.Services.AddSingleton<TranslationSettings>();
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<MainPage>();
 

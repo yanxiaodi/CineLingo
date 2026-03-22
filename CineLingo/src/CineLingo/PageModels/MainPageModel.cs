@@ -14,10 +14,13 @@ public partial class MainPageModel : ObservableObject
     [ObservableProperty] public partial bool IsStartEnabled { get; set; } = true;
     [ObservableProperty] public partial bool IsStopEnabled { get; set; }
     [ObservableProperty] public partial string StatusMessage { get; set; } = string.Empty;
+    [ObservableProperty] public partial bool IsTranslationEnabled { get; set; }
     public bool HasStatusMessage => !string.IsNullOrEmpty(StatusMessage);
 
+    /// <summary>Opacity for the translation toggle button: full when on, dimmed when off.</summary>
+    public double TranslationOpacity => IsTranslationEnabled ? 1.0 : 0.35;
+
     // Colors assigned to speakers in the order they are first encountered.
-    // Used for both diarization mode (keyed by speaker ID) and alternating mode (index cycles).
     private static readonly Color[] SpeakerColors =
     [
         Colors.WhiteSmoke,
@@ -26,38 +29,49 @@ public partial class MainPageModel : ObservableObject
         Color.FromArgb("#FF9966"),
     ];
 
-    // Maps speaker ID → color in English/diarization mode.
     private readonly Dictionary<string, Color> _speakerColorMap = new();
-    // Alternating index used in multi-language mode where speaker IDs are unavailable.
     private int _alternatColorIndex;
-
-    // Punctuation characters that indicate a sentence is already terminated.
     private static readonly char[] TerminatingPunctuation = ['.', '!', '?', '。', '！', '？', '…'];
 
     private readonly ISpeechCaptionService _speechCaptionService;
+    private readonly ITranslationService _translationService;
+    private readonly TranslationSettings _translationSettings;
 
-    public MainPageModel(ISpeechCaptionService speechCaptionService)
+    public MainPageModel(ISpeechCaptionService speechCaptionService,
+                         ITranslationService translationService,
+                         TranslationSettings translationSettings)
     {
         _speechCaptionService = speechCaptionService;
+        _translationService   = translationService;
+        _translationSettings  = translationSettings;
+
+        IsTranslationEnabled = translationSettings.IsEnabled;
+
         _speechCaptionService.PartialResultReceived += OnPartialResultReceived;
-        _speechCaptionService.FinalResultReceived += OnFinalResultReceived;
-        _speechCaptionService.ErrorReceived += OnErrorReceived;
-        _speechCaptionService.StatusChanged += OnStatusChanged;
+        _speechCaptionService.FinalResultReceived   += OnFinalResultReceived;
+        _speechCaptionService.ErrorReceived         += OnErrorReceived;
+        _speechCaptionService.StatusChanged         += OnStatusChanged;
     }
+
+    partial void OnIsTranslationEnabledChanged(bool value)
+    {
+        _translationSettings.IsEnabled = value;
+        OnPropertyChanged(nameof(TranslationOpacity));
+    }
+
+    [RelayCommand]
+    private void ToggleTranslation() => IsTranslationEnabled = !IsTranslationEnabled;
 
     [RelayCommand]
     private async Task StartTranscription()
     {
         IsStartEnabled = false;
-        IsStopEnabled = true;
-        try
-        {
-            await _speechCaptionService.StartAsync();
-        }
+        IsStopEnabled  = true;
+        try { await _speechCaptionService.StartAsync(); }
         catch (Exception ex)
         {
             IsStartEnabled = true;
-            IsStopEnabled = false;
+            IsStopEnabled  = false;
             await Toast.Make($"Failed to start: {ex.Message}").Show(CancellationToken.None);
         }
     }
@@ -66,54 +80,68 @@ public partial class MainPageModel : ObservableObject
     private async Task StopTranscription()
     {
         IsStartEnabled = true;
-        IsStopEnabled = false;
+        IsStopEnabled  = false;
         PartialCaption = string.Empty;
-        StatusMessage = string.Empty;
+        StatusMessage  = string.Empty;
         _alternatColorIndex = 0;
         _speakerColorMap.Clear();
         await _speechCaptionService.StopAsync();
     }
 
-    private void OnPartialResultReceived(object? sender, string text)
-    {
+    private void OnPartialResultReceived(object? sender, string text) =>
         MainThread.BeginInvokeOnMainThread(() => PartialCaption = text);
-    }
 
     private void OnFinalResultReceived(object? sender, FinalResultEventArgs e)
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
             PartialCaption = string.Empty;
-            var color = ResolveColor(e.SpeakerId);
-            var text = EnsureTerminatingPunctuation(e.Text);
-            Captions.Add(new Caption(text, color, e.SpeakerId));
+            var caption = new Caption(EnsureTerminatingPunctuation(e.Text),
+                                      ResolveColor(e.SpeakerId),
+                                      e.SpeakerId);
+            Captions.Add(caption);
+
+            if (IsTranslationEnabled)
+                _ = TranslateCaptionAsync(caption, e.DetectedLanguage);
         });
     }
 
-    private void OnErrorReceived(object? sender, string message)
-    {
+    private void OnErrorReceived(object? sender, string message) =>
         MainThread.BeginInvokeOnMainThread(async () =>
         {
             IsStartEnabled = true;
-            IsStopEnabled = false;
+            IsStopEnabled  = false;
             await Toast.Make(message).Show(CancellationToken.None);
         });
-    }
 
-    private void OnStatusChanged(object? sender, string status)
-    {
+    private void OnStatusChanged(object? sender, string status) =>
         MainThread.BeginInvokeOnMainThread(() =>
         {
             StatusMessage = status;
             OnPropertyChanged(nameof(HasStatusMessage));
         });
-    }
 
     /// <summary>
-    /// Returns a color for the given speaker ID.
-    /// Diarization mode: each unique speaker ID gets a stable assigned color.
-    /// Multi-language mode (speakerId is null): colors alternate per utterance.
+    /// Calls the translation service asynchronously and updates the caption's
+    /// TranslatedText when the result arrives. The UI refreshes automatically
+    /// via the ObservableProperty binding.
     /// </summary>
+    private async Task TranslateCaptionAsync(Caption caption, string? detectedLanguage)
+    {
+        try
+        {
+            var translated = await _translationService.TranslateAsync(
+                caption.Text, detectedLanguage, _translationSettings.TargetLanguage);
+
+            if (!string.IsNullOrWhiteSpace(translated))
+                MainThread.BeginInvokeOnMainThread(() => caption.TranslatedText = translated);
+        }
+        catch
+        {
+            // Translation failure is non-critical; original text remains visible.
+        }
+    }
+
     private Color ResolveColor(string? speakerId)
     {
         if (speakerId is null)
@@ -122,17 +150,14 @@ public partial class MainPageModel : ObservableObject
             _alternatColorIndex++;
             return color;
         }
-
         if (!_speakerColorMap.TryGetValue(speakerId, out var speakerColor))
         {
             speakerColor = SpeakerColors[_speakerColorMap.Count % SpeakerColors.Length];
             _speakerColorMap[speakerId] = speakerColor;
         }
-
         return speakerColor;
     }
 
-    /// <summary>Appends a period if the text doesn't already end with sentence-ending punctuation.</summary>
     private static string EnsureTerminatingPunctuation(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return text;

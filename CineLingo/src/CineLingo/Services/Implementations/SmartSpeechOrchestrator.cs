@@ -93,7 +93,10 @@ public sealed class SmartSpeechOrchestrator : ISpeechCaptionService, IAsyncDispo
 
     private void OnConversationFinalResult(object? sender, FinalResultEventArgs e)
     {
-        FinalResultReceived?.Invoke(this, e);
+        // Language is known to be English — enrich the event so the translation layer
+        // can skip the API call when the target language is also English.
+        var enriched = new FinalResultEventArgs(e.Text, e.SpeakerId, detectedLanguage: "en-US");
+        FinalResultReceived?.Invoke(this, enriched);
     }
 
     private void OnPartialResult(object? sender, string text)
