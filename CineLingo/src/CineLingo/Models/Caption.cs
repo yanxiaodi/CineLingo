@@ -6,12 +6,13 @@ public partial class Caption : ObservableObject
     [ObservableProperty]
     public partial string Text { get; set; } = string.Empty;
 
-    public Caption()
-    {
-    }
+    public Color TextColor { get; init; } = Colors.WhiteSmoke;
 
-    public Caption(string text)
+    public Caption() { }
+
+    public Caption(string text, Color textColor)
     {
         Text = text;
+        TextColor = textColor;
     }
 }

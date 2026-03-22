@@ -20,7 +20,7 @@
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Caption">
                     <Label Margin="12,4" Text="{Binding Text}" LineBreakMode="WordWrap"
-                           TextColor="WhiteSmoke" FontSize="18"/>
+                           TextColor="{Binding TextColor}" FontSize="18"/>
                 </DataTemplate>
             </CollectionView.ItemTemplate>
         </CollectionView>
