@@ -4,7 +4,7 @@ namespace CineLingo.Models;
 public partial class Caption : ObservableObject
 {
     [ObservableProperty]
-    private string _text = string.Empty;
+    public partial string Text { get; set; } = string.Empty;
 
     public Caption()
     {

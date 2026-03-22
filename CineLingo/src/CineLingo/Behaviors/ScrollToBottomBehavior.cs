@@ -1,50 +1,46 @@
-﻿using System.Collections;
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 
 namespace CineLingo.Behaviors;
-public class ScrollToBottomBehavior : Behavior<ListView>
-{
-    private ListView? _listView;
 
-    protected override void OnAttachedTo(ListView bindable)
+/// <summary>Automatically scrolls a CollectionView to the last item when new items are added.</summary>
+public class ScrollToBottomBehavior : Behavior<CollectionView>
+{
+    private CollectionView? _collectionView;
+
+    protected override void OnAttachedTo(CollectionView bindable)
     {
         base.OnAttachedTo(bindable);
-        _listView = bindable;
-        _listView.PropertyChanged += OnListViewPropertyChanged;
-        AttachCollectionChangedHandler(_listView.ItemsSource as INotifyCollectionChanged);
+        _collectionView = bindable;
+        _collectionView.PropertyChanged += OnPropertyChanged;
+        AttachCollectionChangedHandler(_collectionView.ItemsSource as INotifyCollectionChanged);
     }
 
-    protected override void OnDetachingFrom(ListView bindable)
+    protected override void OnDetachingFrom(CollectionView bindable)
     {
         base.OnDetachingFrom(bindable);
-        if (_listView?.ItemsSource is INotifyCollectionChanged collection)
-        {
+        if (_collectionView?.ItemsSource is INotifyCollectionChanged collection)
             collection.CollectionChanged -= OnCollectionChanged;
-        }
-        _listView = null;
+        _collectionView = null;
     }
 
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (e.Action == NotifyCollectionChangedAction.Add && _listView?.ItemsSource is IList items)
+        if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems?.Count > 0 && _collectionView is not null)
         {
-            _listView.ScrollTo(items[^1], ScrollToPosition.End, true);
+            var lastItem = e.NewItems[e.NewItems.Count - 1];
+            _collectionView.ScrollTo(lastItem, position: ScrollToPosition.End, animate: true);
         }
     }
 
-    private void OnListViewPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    private void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(ListView.ItemsSource))
-        {
-            AttachCollectionChangedHandler(_listView?.ItemsSource as INotifyCollectionChanged);
-        }
+        if (e.PropertyName == nameof(CollectionView.ItemsSource))
+            AttachCollectionChangedHandler(_collectionView?.ItemsSource as INotifyCollectionChanged);
     }
 
     private void AttachCollectionChangedHandler(INotifyCollectionChanged? collection)
     {
-        if (collection != null)
-        {
+        if (collection is not null)
             collection.CollectionChanged += OnCollectionChanged;
-        }
     }
 }

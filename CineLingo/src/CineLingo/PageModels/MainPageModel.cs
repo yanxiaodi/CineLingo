@@ -1,111 +1,84 @@
 ﻿using CineLingo.Models;
+using CineLingo.Services.Interfaces;
 using CommunityToolkit.Maui.Alerts;
-using CommunityToolkit.Maui.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
-using System.Globalization;
 
 namespace CineLingo.PageModels;
 
 public partial class MainPageModel : ObservableObject
 {
-    [ObservableProperty] private ObservableCollection<Caption> _captions = [];
+    [ObservableProperty] public partial ObservableCollection<Caption> Captions { get; set; } = [];
+    [ObservableProperty] public partial string PartialCaption { get; set; } = string.Empty;
+    [ObservableProperty] public partial bool HasPartialCaption { get; set; }
+    [ObservableProperty] public partial bool IsStartEnabled { get; set; } = true;
+    [ObservableProperty] public partial bool IsStopEnabled { get; set; }
 
-    [ObservableProperty] private Caption _currentCaption = new();
+    private readonly ISpeechCaptionService _speechCaptionService;
 
-    [ObservableProperty] private bool _isStartEnabled = true;
-    [ObservableProperty] private bool _isStopEnabled = false;
-
-    private bool _isListening;
-    private CancellationTokenSource _cancellationTokenSource;
-
-    private readonly ISpeechToText _speechToText;
-
-    public MainPageModel(ISpeechToText speechToText)
+    public MainPageModel(ISpeechCaptionService speechCaptionService)
     {
-        _speechToText = speechToText;
-        CurrentCaption = new();
-        _cancellationTokenSource = new CancellationTokenSource();
+        _speechCaptionService = speechCaptionService;
+        _speechCaptionService.PartialResultReceived += OnPartialResultReceived;
+        _speechCaptionService.FinalResultReceived += OnFinalResultReceived;
+        _speechCaptionService.ErrorReceived += OnErrorReceived;
     }
 
     [RelayCommand]
     private async Task StartTranscription()
     {
-        if (!_isListening)
+        IsStartEnabled = false;
+        IsStopEnabled = true;
+        try
         {
-            _cancellationTokenSource = new CancellationTokenSource();
-            var isGranted = await _speechToText.RequestPermissions(_cancellationTokenSource.Token);
-            if (!isGranted)
-            {
-                await Toast.Make("Permission not granted").Show(CancellationToken.None);
-                return;
-            }
-
-            _isListening = true;
-            IsStartEnabled = false;
-            IsStopEnabled = true;
-            while (_isListening)
-            {
-                try
-                {
-                    var recognitionResult = await _speechToText.ListenAsync(CultureInfo.CurrentCulture,
-                        new Progress<string>(partialText => { CurrentCaption.Text = partialText + " "; }),
-                        _cancellationTokenSource.Token);
-
-                    if (recognitionResult.IsSuccessful)
-                    {
-                        CurrentCaption.Text = string.Empty;
-                        Captions.Add(new Caption(recognitionResult.Text));
-                    }
-                    //else
-                    //{
-                    //    await Toast.Make(recognitionResult.Exception?.Message ?? "Unable to recognize speech")
-                    //        .Show(CancellationToken.None);
-                    //}
-                }
-                catch (TaskCanceledException)
-                {
-                    // Task was cancelled, this is expected
-                    //await Toast.Make("Transcription stopped.").Show(CancellationToken.None);
-                }
-                catch (Exception ex)
-                {
-                    //await Toast.Make(ex.Message).Show(CancellationToken.None);
-                }
-            }
-            //await StartListenAsync();
+            await _speechCaptionService.StartAsync();
+        }
+        catch (Exception ex)
+        {
+            IsStartEnabled = true;
+            IsStopEnabled = false;
+            await Toast.Make($"Failed to start: {ex.Message}").Show(CancellationToken.None);
         }
     }
 
     [RelayCommand]
-    private void StopTranscription()
+    private async Task StopTranscription()
     {
-        _isListening = false;
         IsStartEnabled = true;
         IsStopEnabled = false;
-        //await _cancellationTokenSource.CancelAsync();
+        PartialCaption = string.Empty;
+        HasPartialCaption = false;
+        await _speechCaptionService.StopAsync();
     }
 
-    //private async Task StartListenAsync()
-    //{
-    //    _speechToText.RecognitionResultUpdated -= OnRecognitionTextUpdated;
-    //    _speechToText.RecognitionResultUpdated += OnRecognitionTextUpdated;
-    //    _speechToText.RecognitionResultCompleted -= OnRecognitionTextCompleted;
-    //    _speechToText.RecognitionResultCompleted += OnRecognitionTextCompleted;
-    //    await _speechToText.StartListenAsync(CultureInfo.CurrentCulture, CancellationToken.None);
-    //}
+    private void OnPartialResultReceived(object? sender, string text)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            PartialCaption = text;
+            HasPartialCaption = !string.IsNullOrEmpty(text);
+        });
+    }
 
-    //void OnRecognitionTextUpdated(object? sender, SpeechToTextRecognitionResultUpdatedEventArgs args)
-    //{
-    //    CurrentCaption.Text += args.RecognitionResult;
-    //}
+    private void OnFinalResultReceived(object? sender, string text)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            PartialCaption = string.Empty;
+            HasPartialCaption = false;
+            Captions.Add(new Caption(text));
+        });
+    }
 
-    //async void OnRecognitionTextCompleted(object? sender, SpeechToTextRecognitionResultCompletedEventArgs args)
-    //{
-    //    Captions.Add(new Caption(args.RecognitionResult));
-    //    CurrentCaption.Text = string.Empty;
-    //    await Task.Delay(500);
-    //    await StartListenAsync();
-    //}
+    private void OnErrorReceived(object? sender, string message)
+    {
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            IsStartEnabled = true;
+            IsStopEnabled = false;
+            await Toast.Make(message).Show(CancellationToken.None);
+        });
+    }
 }
+

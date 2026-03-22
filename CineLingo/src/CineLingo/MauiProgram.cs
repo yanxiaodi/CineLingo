@@ -1,6 +1,7 @@
 ﻿using CineLingo.PageModels;
+using CineLingo.Services.Implementations;
+using CineLingo.Services.Interfaces;
 using CommunityToolkit.Maui;
-using CommunityToolkit.Maui.Media;
 using Microsoft.Extensions.Logging;
 
 namespace CineLingo
@@ -13,9 +14,6 @@ namespace CineLingo
             builder
                 .UseMauiApp<App>()
                 .UseMauiCommunityToolkit()
-                .ConfigureMauiHandlers(handlers =>
-                {
-                })
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -26,9 +24,12 @@ namespace CineLingo
             builder.Logging.AddDebug();
             builder.Services.AddLogging(configure => configure.AddDebug());
 #endif
-            builder.Services.AddSingleton(SpeechToText.Default);
+            builder.Services.AddSingleton<ISpeechCaptionService, AzureSpeechCaptionService>();
             builder.Services.AddSingleton<MainPageModel>();
+            builder.Services.AddSingleton<MainPage>();
+
             return builder.Build();
         }
     }
 }
+

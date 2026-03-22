@@ -4,40 +4,41 @@
              xmlns:pageModels="clr-namespace:CineLingo.PageModels"
              xmlns:models="clr-namespace:CineLingo.Models"
              x:DataType="pageModels:MainPageModel"
-             xmlns:behaviors="clr-namespace:CineLingo.Behaviors"
              x:Class="CineLingo.MainPage" BackgroundColor="Black"
-             Title="CinLingo">
+             Title="CineLingo">
     <Grid VerticalOptions="Fill">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
-            <RowDefinition Height="Auto"></RowDefinition>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <ListView Grid.Row="0" ItemsSource="{Binding Captions}" HasUnevenRows="True">
-            <ListView.Behaviors>
-                <behaviors:ScrollToBottomBehavior />
-            </ListView.Behaviors>
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="models:Caption">
-                    <ViewCell>
-                        <StackLayout Padding="6">
-                            <Label Text="{Binding Text}" LineBreakMode="WordWrap" TextColor="WhiteSmoke"/>
-                        </StackLayout>
-                    </ViewCell>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
-        <Label Padding="6" Grid.Row="1" Text="{Binding CurrentCaption.Text}" LineBreakMode="WordWrap"
-               TextColor="WhiteSmoke"></Label>
-        <Button Grid.Row="2"
-                Text="Start" 
-                SemanticProperties.Hint="Start" IsEnabled="{Binding IsStartEnabled}" IsVisible="{Binding IsStartEnabled}"
-                HorizontalOptions="Fill" Command="{Binding StartTranscriptionCommand}"/>
-        <Button Grid.Row="3"
-                Text="Stop" 
-                SemanticProperties.Hint="Stop" IsEnabled="{Binding IsStopEnabled}" IsVisible="{Binding IsStopEnabled}"
-                HorizontalOptions="Fill" Command="{Binding StopTranscriptionCommand}"/>
-    </Grid>
 
+        <!-- Finalized captions list — auto-scrolls to newest item -->
+        <CollectionView Grid.Row="0" ItemsSource="{Binding Captions}"
+                        ItemsUpdatingScrollMode="KeepLastItemInView"
+                        BackgroundColor="Transparent">
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Caption">
+                    <Label Margin="12,4" Text="{Binding Text}" LineBreakMode="WordWrap"
+                           TextColor="WhiteSmoke" FontSize="18"/>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Interim/partial caption (dimmed, italic — speech still in progress) -->
+        <Label Grid.Row="1" Margin="12,4" Text="{Binding PartialCaption}"
+               LineBreakMode="WordWrap" TextColor="#888888" FontAttributes="Italic" FontSize="18"
+               IsVisible="{Binding HasPartialCaption}"/>
+
+        <!-- Start / Stop toggle -->
+        <Button Grid.Row="2" Text="Start Captions"
+                IsEnabled="{Binding IsStartEnabled}" IsVisible="{Binding IsStartEnabled}"
+                HorizontalOptions="Fill" BackgroundColor="#512BD4" TextColor="White"
+                Command="{Binding StartTranscriptionCommand}"/>
+        <Button Grid.Row="2" Text="Stop Captions"
+                IsEnabled="{Binding IsStopEnabled}" IsVisible="{Binding IsStopEnabled}"
+                HorizontalOptions="Fill" BackgroundColor="#3a1f9e" TextColor="White"
+                Command="{Binding StopTranscriptionCommand}"/>
+    </Grid>
 </ContentPage>
+
