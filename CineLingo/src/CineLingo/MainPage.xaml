@@ -6,17 +6,21 @@
              x:DataType="pageModels:MainPageModel"
              x:Class="CineLingo.MainPage" BackgroundColor="Black"
              Title="CineLingo">
-    <!-- Single-row grid: CollectionView fills all space; bottom panel floats on top anchored to bottom.
-         OnBottomPanelSizeChanged keeps CollectionView.Margin.Bottom equal to the panel height so
-         captions are never hidden behind the partial-caption label or buttons. -->
+    <!-- Two-row Grid: CollectionView fills remaining space, BottomPanel auto-sizes.
+         OnBottomPanelSizeChanged re-scrolls to the last item whenever the panel grows
+         (e.g. partial caption wraps to multiple lines) so captions are never hidden. -->
     <Grid VerticalOptions="Fill">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
-        <!-- Finalized captions list — margin-bottom updated dynamically from BottomPanel height -->
+        <!-- Finalized captions list -->
         <CollectionView x:Name="CaptionsView"
+                        Grid.Row="0"
                         ItemsSource="{Binding Captions}"
                         ItemsUpdatingScrollMode="KeepLastItemInView"
-                        BackgroundColor="Transparent"
-                        VerticalOptions="Fill">
+                        BackgroundColor="Transparent">
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:Caption">
                     <Label Margin="12,4" Text="{Binding Text}" LineBreakMode="WordWrap"
@@ -25,9 +29,10 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Bottom panel floats over the CollectionView, anchored to the bottom -->
+        <!-- Bottom panel: partial caption + buttons.
+             SizeChanged fires when partial caption wraps to more lines. -->
         <VerticalStackLayout x:Name="BottomPanel"
-                             VerticalOptions="End"
+                             Grid.Row="1"
                              BackgroundColor="Black"
                              SizeChanged="OnBottomPanelSizeChanged">
 
