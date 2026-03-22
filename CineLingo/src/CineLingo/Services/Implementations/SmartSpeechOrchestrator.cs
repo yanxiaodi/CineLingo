@@ -22,16 +22,19 @@ public sealed class SmartSpeechOrchestrator : ISpeechCaptionService, IAsyncDispo
 
     private readonly AzureSpeechCaptionService _multiLangService;
     private readonly AzureConversationCaptionService _conversationService;
+    private readonly AppSettings _appSettings;
 
     private bool _detectionDone;
     private bool _isRunning;
 
     public SmartSpeechOrchestrator(
         AzureSpeechCaptionService multiLangService,
-        AzureConversationCaptionService conversationService)
+        AzureConversationCaptionService conversationService,
+        AppSettings appSettings)
     {
-        _multiLangService = multiLangService;
+        _multiLangService    = multiLangService;
         _conversationService = conversationService;
+        _appSettings         = appSettings;
 
         _multiLangService.PartialResultReceived += OnPartialResult;
         _multiLangService.FinalResultReceived += OnMultiLangFinalResult;
@@ -73,8 +76,8 @@ public sealed class SmartSpeechOrchestrator : ISpeechCaptionService, IAsyncDispo
 
         var detected = e.DetectedLanguage;
 
-        // Only switch to conversation mode if English is detected AND credentials are configured.
-        if (detected == "en-US")
+        // Only switch to conversation mode if English is detected AND diarization is enabled.
+        if (detected == "en-US" && _appSettings.EnableSpeakerDiarization)
         {
             Task.Run(async () =>
             {

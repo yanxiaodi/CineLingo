@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pageModels="clr-namespace:CineLingo.PageModels"
+             x:DataType="pageModels:SettingsPageModel"
+             x:Class="CineLingo.SettingsPage"
+             BackgroundColor="Black">
+
+    <Shell.NavBarIsVisible>False</Shell.NavBarIsVisible>
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Custom header -->
+        <Grid Grid.Row="0" BackgroundColor="#111111" Padding="8,12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Text="← Back"
+                    Command="{Binding GoBackCommand}"
+                    BackgroundColor="Transparent" TextColor="#512BD4"
+                    FontSize="15" Padding="0" HorizontalOptions="Start"/>
+            <Label Grid.Column="1" Text="Settings"
+                   TextColor="White" FontSize="17" FontAttributes="Bold"
+                   HorizontalOptions="Center" VerticalOptions="Center"/>
+        </Grid>
+
+        <!-- Scrollable settings body -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="16,8" Spacing="0">
+
+                <!-- ── Translation section ── -->
+                <Label Text="TRANSLATION" TextColor="#666666" FontSize="12" FontAttributes="Bold"
+                       Margin="0,16,0,8"/>
+
+                <Border BackgroundColor="#111111" StrokeThickness="0" Margin="0,0,0,2">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="10"/></Border.StrokeShape>
+                    <Grid Padding="16,14" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Enable Translation"
+                               TextColor="White" FontSize="16" VerticalOptions="Center"/>
+                        <Switch Grid.Column="1" IsToggled="{Binding IsTranslationEnabled}"
+                                OnColor="#512BD4"/>
+                    </Grid>
+                </Border>
+
+                <Border BackgroundColor="#111111" StrokeThickness="0" Margin="0,1,0,2">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="10"/></Border.StrokeShape>
+                    <Grid Padding="16,4,8,4" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Target Language"
+                               TextColor="White" FontSize="16" VerticalOptions="Center"/>
+                        <Picker Grid.Column="1"
+                                ItemsSource="{x:Static pageModels:SettingsPageModel.SupportedLanguages}"
+                                SelectedItem="{Binding SelectedLanguage}"
+                                ItemDisplayBinding="{Binding DisplayName}"
+                                TextColor="White" TitleColor="#888888"
+                                Title="Select language"
+                                HorizontalOptions="End" MinimumWidthRequest="180"/>
+                    </Grid>
+                </Border>
+
+                <!-- ── Display section ── -->
+                <Label Text="DISPLAY" TextColor="#666666" FontSize="12" FontAttributes="Bold"
+                       Margin="0,24,0,8"/>
+
+                <Border BackgroundColor="#111111" StrokeThickness="0" Margin="0,0,0,2">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="10"/></Border.StrokeShape>
+                    <Grid Padding="16,4,8,4" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Caption Font Size"
+                               TextColor="White" FontSize="16" VerticalOptions="Center"/>
+                        <Picker Grid.Column="1"
+                                ItemsSource="{x:Static pageModels:SettingsPageModel.FontSizeLabels}"
+                                SelectedIndex="{Binding SelectedFontSizeIndex}"
+                                TextColor="White"
+                                HorizontalOptions="End" MinimumWidthRequest="160"/>
+                    </Grid>
+                </Border>
+
+                <Border BackgroundColor="#111111" StrokeThickness="0" Margin="0,1,0,2">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="10"/></Border.StrokeShape>
+                    <Grid Padding="16,4,8,4" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0" Text="Max Captions Shown"
+                               TextColor="White" FontSize="16" VerticalOptions="Center"/>
+                        <Picker Grid.Column="1"
+                                ItemsSource="{x:Static pageModels:SettingsPageModel.MaxCaptionLabels}"
+                                SelectedIndex="{Binding SelectedMaxCaptionIndex}"
+                                TextColor="White"
+                                HorizontalOptions="End" MinimumWidthRequest="130"/>
+                    </Grid>
+                </Border>
+
+                <!-- ── Speech section ── -->
+                <Label Text="SPEECH" TextColor="#666666" FontSize="12" FontAttributes="Bold"
+                       Margin="0,24,0,8"/>
+
+                <Border BackgroundColor="#111111" StrokeThickness="0" Margin="0,0,0,2">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="10"/></Border.StrokeShape>
+                    <Grid Padding="16,14" ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Grid.Column="0" VerticalOptions="Center" Spacing="2">
+                            <Label Text="Speaker Diarization (English)"
+                                   TextColor="White" FontSize="16"/>
+                            <Label Text="Colour-codes captions by speaker when English is detected"
+                                   TextColor="#888888" FontSize="12"/>
+                        </VerticalStackLayout>
+                        <Switch Grid.Column="1" IsToggled="{Binding EnableSpeakerDiarization}"
+                                OnColor="#512BD4" VerticalOptions="Center"/>
+                    </Grid>
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

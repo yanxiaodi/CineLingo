@@ -30,7 +30,7 @@
                                IsVisible="{Binding HasSpeakerLabel}"/>
                         <!-- Primary text: translated when available, original otherwise -->
                         <Label Text="{Binding DisplayText}" LineBreakMode="WordWrap"
-                               TextColor="{Binding TextColor}" FontSize="18"/>
+                               TextColor="{Binding TextColor}" FontSize="{DynamicResource CaptionFontSize}"/>
                         <!-- Original text shown as subtitle once translation arrives -->
                         <Label Text="{Binding Text}" LineBreakMode="WordWrap"
                                TextColor="#555555" FontSize="13"
@@ -53,11 +53,12 @@
                    LineBreakMode="WordWrap" TextColor="#888888" FontAttributes="Italic" FontSize="18"
                    MinimumHeightRequest="28"/>
 
-            <!-- Toolbar: 4-column structure — layout never shifts -->
+            <!-- Toolbar: 5-column structure — layout never shifts -->
             <Grid Padding="8,0,8,8" ColumnSpacing="8">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>  <!-- App identity -->
                     <ColumnDefinition Width="Auto"/>  <!-- Translation toggle -->
+                    <ColumnDefinition Width="Auto"/>  <!-- Settings -->
                     <ColumnDefinition Width="*"/>     <!-- Button + status overlay -->
                     <ColumnDefinition Width="Auto"/>  <!-- Listening dot -->
                 </Grid.ColumnDefinitions>
@@ -94,8 +95,25 @@
                     <Label Text="Translate" FontSize="9" TextColor="#666666" HorizontalOptions="Center"/>
                 </VerticalStackLayout>
 
+                <!-- Settings button -->
+                <VerticalStackLayout Grid.Column="2" VerticalOptions="Center" Spacing="2">
+                    <Border WidthRequest="36" HeightRequest="36"
+                            BackgroundColor="#1E1E1E"
+                            StrokeThickness="0">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="8"/>
+                        </Border.StrokeShape>
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding NavigateToSettingsCommand}"/>
+                        </Border.GestureRecognizers>
+                        <Label Text="⚙️" FontSize="18"
+                               HorizontalOptions="Center" VerticalOptions="Center"/>
+                    </Border>
+                    <Label Text="Settings" FontSize="9" TextColor="#666666" HorizontalOptions="Center"/>
+                </VerticalStackLayout>
+
                 <!-- Button column: Start/Stop button with status text overlaid at bottom-right -->
-                <Grid Grid.Column="2">
+                <Grid Grid.Column="3">
                     <Button Text="Start Captions"
                             IsEnabled="{Binding IsStartEnabled}" IsVisible="{Binding IsStartEnabled}"
                             HorizontalOptions="Fill" CornerRadius="8"
@@ -114,7 +132,7 @@
                 </Grid>
 
                 <!-- Listening dot: pulsing animation, visible only while recogniser is running -->
-                <VerticalStackLayout Grid.Column="3"
+                <VerticalStackLayout Grid.Column="4"
                                      IsVisible="{Binding IsStopEnabled}"
                                      VerticalOptions="Center" Padding="4,0" MinimumWidthRequest="44">
                     <Label x:Name="ListeningDot" Text="⬤" FontSize="22"

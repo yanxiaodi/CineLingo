@@ -35,17 +35,17 @@ public partial class MainPageModel : ObservableObject
 
     private readonly ISpeechCaptionService _speechCaptionService;
     private readonly ITranslationService _translationService;
-    private readonly TranslationSettings _translationSettings;
+    private readonly AppSettings _appSettings;
 
     public MainPageModel(ISpeechCaptionService speechCaptionService,
                          ITranslationService translationService,
-                         TranslationSettings translationSettings)
+                         AppSettings appSettings)
     {
         _speechCaptionService = speechCaptionService;
         _translationService   = translationService;
-        _translationSettings  = translationSettings;
+        _appSettings          = appSettings;
 
-        IsTranslationEnabled = translationSettings.IsEnabled;
+        IsTranslationEnabled = appSettings.IsTranslationEnabled;
 
         _speechCaptionService.PartialResultReceived += OnPartialResultReceived;
         _speechCaptionService.FinalResultReceived   += OnFinalResultReceived;
@@ -55,12 +55,15 @@ public partial class MainPageModel : ObservableObject
 
     partial void OnIsTranslationEnabledChanged(bool value)
     {
-        _translationSettings.IsEnabled = value;
+        _appSettings.IsTranslationEnabled = value;
         OnPropertyChanged(nameof(TranslationOpacity));
     }
 
     [RelayCommand]
     private void ToggleTranslation() => IsTranslationEnabled = !IsTranslationEnabled;
+
+    [RelayCommand]
+    private static async Task NavigateToSettings() => await Shell.Current.GoToAsync("settings");
 
     [RelayCommand]
     private async Task StartTranscription()
@@ -101,6 +104,9 @@ public partial class MainPageModel : ObservableObject
                                       e.SpeakerId);
             Captions.Add(caption);
 
+            if (_appSettings.MaxCaptionCount > 0 && Captions.Count > _appSettings.MaxCaptionCount)
+                Captions.RemoveAt(0);
+
             if (IsTranslationEnabled)
                 _ = TranslateCaptionAsync(caption, e.DetectedLanguage);
         });
@@ -131,7 +137,7 @@ public partial class MainPageModel : ObservableObject
         try
         {
             var translated = await _translationService.TranslateAsync(
-                caption.Text, detectedLanguage, _translationSettings.TargetLanguage);
+                caption.Text, detectedLanguage, _appSettings.TargetLanguage);
 
             if (!string.IsNullOrWhiteSpace(translated))
                 MainThread.BeginInvokeOnMainThread(() => caption.TranslatedText = translated);

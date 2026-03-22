@@ -5,6 +5,7 @@
              x:Class="CineLingo.App">
     <Application.Resources>
         <ResourceDictionary>
+            <x:Double x:Key="CaptionFontSize">18</x:Double>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />

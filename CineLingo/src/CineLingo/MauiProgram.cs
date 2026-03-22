@@ -29,9 +29,11 @@ namespace CineLingo
             builder.Services.AddSingleton<AzureConversationCaptionService>();
             builder.Services.AddSingleton<ISpeechCaptionService, SmartSpeechOrchestrator>();
             builder.Services.AddSingleton<ITranslationService, AzureTranslatorService>();
-            builder.Services.AddSingleton<TranslationSettings>();
+            builder.Services.AddSingleton<AppSettings>();
             builder.Services.AddSingleton<MainPageModel>();
             builder.Services.AddSingleton<MainPage>();
+            builder.Services.AddSingleton<SettingsPageModel>();
+            builder.Services.AddSingleton<SettingsPage>();
 
             return builder.Build();
         }
