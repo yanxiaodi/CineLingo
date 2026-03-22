@@ -11,13 +11,15 @@ public partial class MainPageModel : ObservableObject
 {
     [ObservableProperty] public partial ObservableCollection<Caption> Captions { get; set; } = [];
     [ObservableProperty] public partial string PartialCaption { get; set; } = string.Empty;
-    [ObservableProperty] public partial bool HasPartialCaption { get; set; }
     [ObservableProperty] public partial bool IsStartEnabled { get; set; } = true;
     [ObservableProperty] public partial bool IsStopEnabled { get; set; }
 
     // Two alternating colors to visually distinguish consecutive utterances.
     private static readonly Color[] SpeakerColors = [Colors.WhiteSmoke, Color.FromArgb("#FFE066")];
     private int _currentColorIndex;
+
+    // Punctuation characters that indicate a sentence is already terminated.
+    private static readonly char[] TerminatingPunctuation = ['.', '!', '?', '。', '！', '？', '…'];
 
     private readonly ISpeechCaptionService _speechCaptionService;
 
@@ -52,18 +54,13 @@ public partial class MainPageModel : ObservableObject
         IsStartEnabled = true;
         IsStopEnabled = false;
         PartialCaption = string.Empty;
-        HasPartialCaption = false;
         _currentColorIndex = 0;
         await _speechCaptionService.StopAsync();
     }
 
     private void OnPartialResultReceived(object? sender, string text)
     {
-        MainThread.BeginInvokeOnMainThread(() =>
-        {
-            PartialCaption = text;
-            HasPartialCaption = !string.IsNullOrEmpty(text);
-        });
+        MainThread.BeginInvokeOnMainThread(() => PartialCaption = text);
     }
 
     private void OnFinalResultReceived(object? sender, string text)
@@ -71,8 +68,7 @@ public partial class MainPageModel : ObservableObject
         MainThread.BeginInvokeOnMainThread(() =>
         {
             PartialCaption = string.Empty;
-            HasPartialCaption = false;
-            Captions.Add(new Caption(text, SpeakerColors[_currentColorIndex]));
+            Captions.Add(new Caption(EnsureTerminatingPunctuation(text), SpeakerColors[_currentColorIndex]));
             _currentColorIndex = 1 - _currentColorIndex;
         });
     }
@@ -85,6 +81,13 @@ public partial class MainPageModel : ObservableObject
             IsStopEnabled = false;
             await Toast.Make(message).Show(CancellationToken.None);
         });
+    }
+
+    /// <summary>Appends a period if the text doesn't already end with punctuation.</summary>
+    private static string EnsureTerminatingPunctuation(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return text;
+        return TerminatingPunctuation.Contains(text[^1]) ? text : text + ".";
     }
 }
 

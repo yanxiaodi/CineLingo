@@ -25,10 +25,10 @@
             </CollectionView.ItemTemplate>
         </CollectionView>
 
-        <!-- Interim/partial caption (dimmed, italic — speech still in progress) -->
+        <!-- Interim/partial caption — always occupies space to prevent CollectionView from jumping -->
         <Label Grid.Row="1" Margin="12,4" Text="{Binding PartialCaption}"
                LineBreakMode="WordWrap" TextColor="#888888" FontAttributes="Italic" FontSize="18"
-               IsVisible="{Binding HasPartialCaption}"/>
+               MinimumHeightRequest="28"/>
 
         <!-- Start / Stop toggle -->
         <Button Grid.Row="2" Text="Start Captions"
